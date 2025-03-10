@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+        #imageContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Image Generator</h1>
+    <input type="text" id="factInput" placeholder="Enter a fact or description">
+    <button onclick="generateImage()">Generate Image</button>
+    <div id="imageContainer">
+        <!-- Generated image will appear here -->
+    </div>
+
+    <script>
+        async function generateImage() {
+            const fact = document.getElementById('factInput').value;
+            const apiKey = 'https://dark-shan-yt.koyeb.app/ai/generate-image-v2?prompt=; // Replace with your actual API key
+            const url = 'https://api.openai.com/v1/images/generations'; // Example API endpoint
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    prompt: fact,
+                    n: 1,
+                    size: "1024x1024"
+                })
+            });
+
+            const data = await response.json();
+            const imageUrl = data.data[0].url;
+
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = `<img src="${imageUrl}" alt="Generated Image">`;
+        }
+    </script>
+</body>
+</html>
