@@ -5,6 +5,19 @@
     <title>MR SACHINTHA SONG DWLD</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            overflow-x: hidden;
+        }
+
         /* Loading Screen */
         #loader {
             position: fixed;
@@ -24,17 +37,18 @@
             background: #333;
             border-radius: 10px;
             overflow: hidden;
+            margin-top: 20px;
         }
 
         .progress {
             width: 0%;
             height: 100%;
-            background: #4CAF50;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             transition: width 0.3s ease;
         }
 
-        /* Background Animation */
-        .music-bars {
+        /* Animated Background */
+        .music-waves {
             position: fixed;
             width: 100vw;
             height: 100vh;
@@ -45,16 +59,17 @@
             opacity: 0.1;
         }
 
-        .bar {
+        .wave {
             width: 10px;
             height: 100px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            animation: sound 0.8s infinite alternate;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            animation: wave 0.8s infinite alternate;
+            transform-origin: bottom;
         }
 
-        @keyframes sound {
-            0% {height: 10px;}
-            100% {height: 150px;}
+        @keyframes wave {
+            0% { transform: scaleY(0.2); }
+            100% { transform: scaleY(1); }
         }
 
         /* Search Bar */
@@ -62,20 +77,28 @@
             position: relative;
             margin: 200px auto 50px;
             width: 500px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
 
         .search-input {
             width: 100%;
-            padding: 25px;
+            padding: 25px 40px;
             border-radius: 50px;
-            border: 3px solid #4ecdc4;
+            border: 3px solid var(--secondary);
             font-size: 18px;
             transition: all 0.3s ease;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(10px);
         }
 
         .search-input:focus {
-            box-shadow: 0 0 20px rgba(78,205,196,0.5);
+            box-shadow: 0 0 30px rgba(78,205,196,0.5);
             transform: scale(1.05);
         }
 
@@ -84,67 +107,69 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background: rgba(255,255,255,0.9);
+        }
+
+        .song-card {
+            background: rgba(255,255,255,0.1);
             border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.1);
-        }
-
-        .song-item {
-            padding: 15px;
-            margin: 10px 0;
-            background: #fff;
-            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(10px);
+            transform: translateX(-100%);
+            animation: slideIn 0.5s forwards;
             transition: all 0.3s ease;
-            cursor: pointer;
         }
 
-        .song-item:hover {
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        .song-card:hover {
             transform: translateX(10px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.15);
         }
 
         /* Player Section */
         .player {
-            margin-top: 30px;
+            margin-top: 20px;
             text-align: center;
         }
 
         .download-btn {
             padding: 12px 30px;
-            background: #4ecdc4;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
             border: none;
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-top: 15px;
         }
 
         .download-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(78,205,196,0.4);
+            box-shadow: 0 0 20px rgba(78,205,196,0.4);
         }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
     <div id="loader">
-        <div class="music-bars">
-            <div class="bar" style="animation-delay: 0.1s"></div>
-            <div class="bar" style="animation-delay: 0.2s"></div>
-            <div class="bar" style="animation-delay: 0.3s"></div>
+        <div class="music-waves">
+            <div class="wave" style="animation-delay: 0.1s"></div>
+            <div class="wave" style="animation-delay: 0.2s"></div>
+            <div class="wave" style="animation-delay: 0.3s"></div>
         </div>
         <div class="progress-bar">
             <div class="progress"></div>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="container" style="display: none;">
         <div class="search-container">
-            <input type="text" class="search-input" placeholder="Search Songs...">
+            <input type="text" class="search-input" placeholder="Search Songs..." id="searchInput">
         </div>
 
-        <div class="song-results"></div>
+        <div class="song-results" id="results"></div>
     </div>
 
     <script>
@@ -167,40 +192,70 @@
             }, 30);
 
             // Search Functionality
-            const searchInput = document.querySelector('.search-input');
-            const resultsContainer = document.querySelector('.song-results');
+            const searchInput = document.getElementById('searchInput');
+            const results = document.getElementById('results');
 
             searchInput.addEventListener('keypress', async (e) => {
                 if (e.key === 'Enter') {
                     const searchTerm = searchInput.value;
-                    resultsContainer.innerHTML = `
-                        <div class="song-item">
-                            <h3>SONG SEARCHING COMPLETELY</h3>
+                    results.innerHTML = `
+                        <div class="song-card">
+                            <h3>🔍 SEARCHING: ${searchTerm}</h3>
                             <p>Searching across: song.lk, songhub.lk, sawana.lk, sinhanada.lk</p>
                         </div>
                     `;
 
-                    // Simulate API call
-                    setTimeout(() => showResults(), 2000);
+                    try {
+                        const response = await fetch(`https://dark-shan-yt.koyeb.app/search/uptodown?url=${encodeURIComponent(searchTerm)}`);
+                        const data = await response.json();
+                        
+                        if(data.status) {
+                            showResults(data);
+                        } else {
+                            showError();
+                        }
+                    } catch (error) {
+                        showError();
+                    }
                 }
             });
         }
 
-        function showResults() {
-            const resultsContainer = document.querySelector('.song-results');
-            resultsContainer.innerHTML = `
-                <div class="song-item">
-                    <h3>Song Title</h3>
-                    <p>Artist: Singer Name</p>
-                    <p>Album: Album Name</p>
+        function showResults(data) {
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="song-card">
+                    <h3>🎵 SONG SEARCHING COMPLETELY</h3>
+                    <div class="song-info">
+                        <p>🎤 Artist: Unknown Artist</p>
+                        <p>💿 Album: Unknown Album</p>
+                        <p>⏱ Duration: 3:45</p>
+                    </div>
                     <div class="player">
-                        <audio controls>
-                            <source src="song.mp3" type="audio/mpeg">
+                        <audio controls style="width: 100%">
+                            <source src="placeholder.mp3" type="audio/mpeg">
                         </audio>
-                        <button class="download-btn">Download MP3</button>
+                        <button class="download-btn" onclick="downloadSong()">
+                            <i class="fas fa-download"></i> Download MP3
+                        </button>
                     </div>
                 </div>
             `;
+        }
+
+        function showError() {
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="song-card" style="background: #ff6b6b20">
+                    <h3>❌ Error fetching results</h3>
+                    <p>Please try again later</p>
+                </div>
+            `;
+        }
+
+        function downloadSong() {
+            // Implement actual download functionality
+            alert('Download functionality needs backend implementation');
         }
     </script>
 </body>
