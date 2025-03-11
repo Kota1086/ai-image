@@ -2,52 +2,205 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Generator</title>
+    <title>MR SACHINTHA SONG DWLD</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+        }
+
+        /* Background Animation */
+        .music-bars {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .bar {
+            width: 10px;
+            height: 100px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            animation: sound 0.8s infinite alternate;
+        }
+
+        @keyframes sound {
+            0% {height: 10px;}
+            100% {height: 150px;}
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin: 200px auto 50px;
+            width: 500px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 25px;
+            border-radius: 50px;
+            border: 3px solid #4ecdc4;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 20px rgba(78,205,196,0.5);
+            transform: scale(1.05);
+        }
+
+        /* Results Section */
+        .song-results {
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+
+        .song-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #fff;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .song-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Player Section */
+        .player {
+            margin-top: 30px;
             text-align: center;
         }
-        #imageContainer {
-            margin-top: 20px;
+
+        .download-btn {
+            padding: 12px 30px;
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(78,205,196,0.4);
         }
     </style>
 </head>
 <body>
-    <h1>AI Image Generator</h1>
-    <input type="text" id="factInput" placeholder="Enter a fact or description">
-    <button onclick="generateImage()">Generate Image</button>
-    <div id="imageContainer">
-        <!-- Generated image will appear here -->
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="music-bars">
+            <div class="bar" style="animation-delay: 0.1s"></div>
+            <div class="bar" style="animation-delay: 0.2s"></div>
+            <div class="bar" style="animation-delay: 0.3s"></div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" style="display: none;">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Search Songs...">
+        </div>
+
+        <div class="song-results"></div>
     </div>
 
     <script>
-        async function generateImage() {
-            const fact = document.getElementById('factInput').value;
-            const apiKey = 'https://dark-shan-yt.koyeb.app/ai/generate-image-v2?prompt=; // Replace with your actual API key
-            const url = 'https://api.openai.com/v1/images/generations'; // Example API endpoint
+        // Simulate loading
+        window.onload = function() {
+            let width = 0;
+            const progressBar = document.querySelector('.progress');
+            const loader = document.getElementById('loader');
+            const container = document.querySelector('.container');
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    prompt: fact,
-                    n: 1,
-                    size: "1024x1024"
-                })
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    loader.style.display = 'none';
+                    container.style.display = 'block';
+                } else {
+                    width++;
+                    progressBar.style.width = width + '%';
+                }
+            }, 30);
+
+            // Search Functionality
+            const searchInput = document.querySelector('.search-input');
+            const resultsContainer = document.querySelector('.song-results');
+
+            searchInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const searchTerm = searchInput.value;
+                    resultsContainer.innerHTML = `
+                        <div class="song-item">
+                            <h3>SONG SEARCHING COMPLETELY</h3>
+                            <p>Searching across: song.lk, songhub.lk, sawana.lk, sinhanada.lk</p>
+                        </div>
+                    `;
+
+                    // Simulate API call
+                    setTimeout(() => showResults(), 2000);
+                }
             });
+        }
 
-            const data = await response.json();
-            const imageUrl = data.data[0].url;
-
-            const imageContainer = document.getElementById('imageContainer');
-            imageContainer.innerHTML = `<img src="${imageUrl}" alt="Generated Image">`;
+        function showResults() {
+            const resultsContainer = document.querySelector('.song-results');
+            resultsContainer.innerHTML = `
+                <div class="song-item">
+                    <h3>Song Title</h3>
+                    <p>Artist: Singer Name</p>
+                    <p>Album: Album Name</p>
+                    <div class="player">
+                        <audio controls>
+                            <source src="song.mp3" type="audio/mpeg">
+                        </audio>
+                        <button class="download-btn">Download MP3</button>
+                    </div>
+                </div>
+            `;
         }
     </script>
 </body>
