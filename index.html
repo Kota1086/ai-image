@@ -1,262 +1,63 @@
+# Simple Snake Game
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MR SACHINTHA SONG DWLD</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Snake Game</title>
     <style>
-        :root {
-            --primary: #ff6b6b;
-            --secondary: #4ecdc4;
-        }
-
         body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background: #1a1a1a;
-            color: white;
-            overflow-x: hidden;
-        }
-
-        /* Loading Screen */
-        #loader {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: #1a1a1a;
-            z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-        }
-
-        .progress-bar {
-            width: 300px;
-            height: 20px;
-            background: #333;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .progress {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transition: width 0.3s ease;
-        }
-
-        /* Animated Background */
-        .music-waves {
-            position: fixed;
-            width: 100vw;
             height: 100vh;
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            z-index: -1;
-            opacity: 0.1;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
         }
-
-        .wave {
-            width: 10px;
-            height: 100px;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            animation: wave 0.8s infinite alternate;
-            transform-origin: bottom;
-        }
-
-        @keyframes wave {
-            0% { transform: scaleY(0.2); }
-            100% { transform: scaleY(1); }
-        }
-
-        /* Search Bar */
-        .search-container {
-            position: relative;
-            margin: 200px auto 50px;
-            width: 500px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 25px 40px;
-            border-radius: 50px;
-            border: 3px solid var(--secondary);
-            font-size: 18px;
-            transition: all 0.3s ease;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            backdrop-filter: blur(10px);
-        }
-
-        .search-input:focus {
-            box-shadow: 0 0 30px rgba(78,205,196,0.5);
-            transform: scale(1.05);
-        }
-
-        /* Results Section */
-        .song-results {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .song-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-            backdrop-filter: blur(10px);
-            transform: translateX(-100%);
-            animation: slideIn 0.5s forwards;
-            transition: all 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            to { transform: translateX(0); }
-        }
-
-        .song-card:hover {
-            transform: translateX(10px);
-            background: rgba(255,255,255,0.15);
-        }
-
-        /* Player Section */
-        .player {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .download-btn {
-            padding: 12px 30px;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-        }
-
-        .download-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(78,205,196,0.4);
+        canvas {
+            border: 1px solid #000;
+            background-color: #fff;
         }
     </style>
 </head>
 <body>
-    <div id="loader">
-        <div class="music-waves">
-            <div class="wave" style="animation-delay: 0.1s"></div>
-            <div class="wave" style="animation-delay: 0.2s"></div>
-            <div class="wave" style="animation-delay: 0.3s"></div>
-        </div>
-        <div class="progress-bar">
-            <div class="progress"></div>
-        </div>
-    </div>
-
-    <div class="container" style="display: none;">
-        <div class="search-container">
-            <input type="text" class="search-input" placeholder="Search Songs..." id="searchInput">
-        </div>
-
-        <div class="song-results" id="results"></div>
-    </div>
-
+    <canvas id="snakeGame" width="400" height="400"></canvas>
     <script>
-        // Simulate loading
-        window.onload = function() {
-            let width = 0;
-            const progressBar = document.querySelector('.progress');
-            const loader = document.getElementById('loader');
-            const container = document.querySelector('.container');
+        const canvas = document.getElementById('snakeGame');
+        const ctx = canvas.getContext('2d');
+        const box = 20;
+        let snake = [{ x: 9 * box, y: 9 * box }];
+        let direction = 'RIGHT';
+        let food = {
+            x: Math.floor(Math.random() * 20) * box,
+            y: Math.floor(Math.random() * 20) * box
+        };
 
-            const interval = setInterval(() => {
-                if (width >= 100) {
-                    clearInterval(interval);
-                    loader.style.display = 'none';
-                    container.style.display = 'block';
-                } else {
-                    width++;
-                    progressBar.style.width = width + '%';
-                }
-            }, 30);
+        document.addEventListener('keydown', directionControl);
 
-            // Search Functionality
-            const searchInput = document.getElementById('searchInput');
-            const results = document.getElementById('results');
-
-            searchInput.addEventListener('keypress', async (e) => {
-                if (e.key === 'Enter') {
-                    const searchTerm = searchInput.value;
-                    results.innerHTML = `
-                        <div class="song-card">
-                            <h3>🔍 SEARCHING: ${searchTerm}</h3>
-                            <p>Searching across: song.lk, songhub.lk, sawana.lk, sinhanada.lk</p>
-                        </div>
-                    `;
-
-                    try {
-                        const response = await fetch(`https://dark-shan-yt.koyeb.app/search/uptodown?url=${encodeURIComponent(searchTerm)}`);
-                        const data = await response.json();
-                        
-                        if(data.status) {
-                            showResults(data);
-                        } else {
-                            showError();
-                        }
-                    } catch (error) {
-                        showError();
-                    }
-                }
-            });
+        function directionControl(event) {
+            if (event.keyCode == 37 && direction != 'RIGHT') direction = 'LEFT';
+            else if (event.keyCode == 38 && direction != 'DOWN') direction = 'UP';
+            else if (event.keyCode == 39 && direction != 'LEFT') direction = 'RIGHT';
+            else if (event.keyCode == 40 && direction != 'UP') direction = 'DOWN';
         }
 
-        function showResults(data) {
-            const results = document.getElementById('results');
-            results.innerHTML = `
-                <div class="song-card">
-                    <h3>🎵 SONG SEARCHING COMPLETELY</h3>
-                    <div class="song-info">
-                        <p>🎤 Artist: Unknown Artist</p>
-                        <p>💿 Album: Unknown Album</p>
-                        <p>⏱ Duration: 3:45</p>
-                    </div>
-                    <div class="player">
-                        <audio controls style="width: 100%">
-                            <source src="placeholder.mp3" type="audio/mpeg">
-                        </audio>
-                        <button class="download-btn" onclick="downloadSong()">
-                            <i class="fas fa-download"></i> Download MP3
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
+        function draw() {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i === 0) ? 'green' : 'lightgreen';
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                ctx.strokeStyle = 'darkgreen';
+                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
 
-        function showError() {
-            const results = document.getElementById('results');
-            results.innerHTML = `
-                <div class="song-card" style="background: #ff6b6b20">
-                    <h3>❌ Error fetching results</h3>
-                    <p>Please try again later</p>
-                </div>
-            `;
-        }
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x, food.y, box, box);
 
-        function downloadSong() {
-            // Implement actual download functionality
-            alert('Download functionality needs backend implementation');
-        }
-    </script>
-</body>
-</html>
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (direction == 'LEFT') snakeX -= box;
+            if (direction == 'UP') snakeY
