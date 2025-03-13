@@ -1,138 +1,166 @@
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpExchange;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-public class SongSearchWebsite {
-
-    public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-        server.createContext("/", new SearchHandler());
-        server.createContext("/search", new SearchHandler());
-        server.setExecutor(null);
-        server.start();
-        System.out.println("Server running on port 8080");
-    }
-
-    static class SearchHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if ("POST".equals(exchange.getRequestMethod())) {
-                handlePostRequest(exchange);
-            } else {
-                handleGetRequest(exchange);
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Downloader</title>
+    <style>
+        /* (Keep the same CSS styles as before) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
         }
 
-        private void handleGetRequest(HttpExchange exchange) throws IOException {
-            String htmlForm = "<html>" +
-                    "<body>" +
-                    "<h1>Song Search</h1>" +
-                    "<form method='POST' action='/search'>" +
-                    "<input type='text' name='query' placeholder='Enter song name'/>" +
-                    "<input type='submit' value='Search'/>" +
-                    "</form>" +
-                    "</body>" +
-                    "</html>";
-
-            sendResponse(exchange, htmlForm);
+        body {
+            background: #1a1a1a;
+            color: white;
+            min-height: 100vh;
         }
 
-        private void handlePostRequest(HttpExchange exchange) throws IOException {
-            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            Map<String, String> params = parseFormData(requestBody);
-            String query = params.getOrDefault("query", "");
-
-            // Mock API response - Replace this with actual API call in real implementation
-            String mockApiResponse = "{"
-                    + "\"status\": true,"
-                    + "\"owner\": \"@dark-shan-yt1\","
-                    + "\"data\": {"
-                    + "\"name\": \"Helena\","
-                    + "\"albumname\": \"May Death Never Stop You (Deluxe Version)\","
-                    + "\"artist\": \"My Chemical Romance\","
-                    + "\"thumb\": \"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/27/86/b2/2786b235-e506-668a-76db-1e10ffe651a5/093624938330.jpg/600x600bb.webp\","
-                    + "\"duration\": \"3m 25s\","
-                    + "\"download\": \"https://dark-shan-yt.koyeb.app/token-fe8afe3a7c4a5d55e9e62752bbfe02cd074a4fc177faee3ba9bec600278cbc2d-darkshanyt\""
-                    + "}"
-                    + "}";
-
-            // Parse the mock response
-            Map<String, String> songData = parseJsonResponse(mockApiResponse);
-
-            // Build result HTML
-            String resultHtml = "<html><body>";
-            if (!songData.isEmpty()) {
-                resultHtml += "<h2>Search Results:</h2>" +
-                        "<p>Name: " + songData.get("name") + "</p>" +
-                        "<p>Artist: " + songData.get("artist") + "</p>" +
-                        "<p>Album: " + songData.get("albumname") + "</p>" +
-                        "<p>Duration: " + songData.get("duration") + "</p>" +
-                        "<a href='" + songData.get("download") + "' download>" +
-                        "<button>Download Song</button>" +
-                        "</a>";
-            } else {
-                resultHtml += "<p>No results found for: " + query + "</p>";
-            }
-            resultHtml += "</body></html>";
-
-            sendResponse(exchange, resultHtml);
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
-        private Map<String, String> parseFormData(String formData) {
-            Map<String, String> params = new HashMap<>();
-            String[] pairs = formData.split("&");
-            for (String pair : pairs) {
-                String[] keyValue = pair.split("=");
-                if (keyValue.length == 2) {
-                    params.put(keyValue[0], keyValue[1]);
-                }
-            }
-            return params;
+        header {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
-        private Map<String, String> parseJsonResponse(String json) {
-            Map<String, String> data = new HashMap<>();
+        h1 {
+            color: #ff4757;
+            margin-bottom: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #ff4757;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #ff6b81;
+        }
+
+        .result-card {
+            background: #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .song-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .album-art {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .song-details {
+            flex: 1;
+        }
+
+        .song-title {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            color: #ff4757;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            background: #2ed573;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            transition: background 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #26af5f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Music Downloader</h1>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Enter song name...">
+                <button onclick="searchSong()">Search</button>
+            </div>
+        </header>
+
+        <div id="results">
+            <!-- Results will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        async function searchSong() {
+            const searchInput = document.getElementById('searchInput').value;
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = ''; // Clear previous results
+
             try {
-                Pattern pattern = Pattern.compile("\"name\":\\s*\"([^\"]+)\"");
-                Matcher matcher = pattern.matcher(json);
-                if (matcher.find()) data.put("name", matcher.group(1));
+                const response = await fetch(`https://dark-shan-yt.koyeb.app/api/search?q=${encodeURIComponent(searchInput)}`);
+                const data = await response.json();
 
-                pattern = Pattern.compile("\"artist\":\\s*\"([^\"]+)\"");
-                matcher = pattern.matcher(json);
-                if (matcher.find()) data.put("artist", matcher.group(1));
-
-                pattern = Pattern.compile("\"albumname\":\\s*\"([^\"]+)\"");
-                matcher = pattern.matcher(json);
-                if (matcher.find()) data.put("albumname", matcher.group(1));
-
-                pattern = Pattern.compile("\"duration\":\\s*\"([^\"]+)\"");
-                matcher = pattern.matcher(json);
-                if (matcher.find()) data.put("duration", matcher.group(1));
-
-                pattern = Pattern.compile("\"download\":\\s*\"([^\"]+)\"");
-                matcher = pattern.matcher(json);
-                if (matcher.find()) data.put("download", matcher.group(1));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return data;
-        }
-
-        private void sendResponse(HttpExchange exchange, String response) throws IOException {
-            exchange.getResponseHeaders().add("Content-Type", "text/html");
-            exchange.sendResponseHeaders(200, response.getBytes().length);
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(response.getBytes());
+                if (data.status && data.data) {
+                    const song = data.data;
+                    const resultCard = document.createElement('div');
+                    resultCard.className = 'result-card';
+                    resultCard.innerHTML = `
+                        <div class="song-info">
+                            <img class="album-art" src="${song.thumb}" alt="Album Art">
+                            <div class="song-details">
+                                <h2 class="song-title">${song.name}</h2>
+                                <p class="artist">Artist: ${song.artist}</p>
+                                <p class="album">Album: ${song.albumname}</p>
+                                <p class="duration">Duration: ${song.duration}</p>
+                                <a href="${song.download}" class="download-btn" target="_blank">Download</a>
+                            </div>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(resultCard);
+                } else {
+                    resultsContainer.innerHTML = '<p class="no-results">No results found</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultsContainer.innerHTML = '<p class="error">Error fetching results. Please try again.</p>';
             }
         }
-    }
-}
+    </script>
+</body>
+</html>
