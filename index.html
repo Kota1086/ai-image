@@ -1,127 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song Search</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
 
-        .search-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-        input[type="text"] {
-            flex: 1;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
+public class SongSearchWebsite {
 
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        server.createContext("/", new SearchHandler());
+        server.createContext("/search", new SearchHandler());
+        server.setExecutor(null);
+        server.start();
+        System.out.println("Server running on port 8080");
+    }
 
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .song-result {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .song-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .song-thumbnail {
-            width: 150px;
-            height: 150px;
-            border-radius: 8px;
-        }
-
-        .song-details {
-            flex: 1;
-        }
-
-        .download-btn {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .download-btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-    <h1>Song Search</h1>
-    
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Enter song name...">
-        <button onclick="searchSong()">Search</button>
-    </div>
-
-    <div id="result" class="song-result" style="display: none;">
-        <div class="song-info">
-            <img class="song-thumbnail" id="songThumb" src="" alt="Album Art">
-            <div class="song-details">
-                <h2 id="songTitle"></h2>
-                <p>Artist: <span id="songArtist"></span></p>
-                <p>Album: <span id="songAlbum"></span></p>
-                <p>Duration: <span id="songDuration"></span></p>
-                <a href="#" id="downloadLink" class="download-btn">Download</a>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        async function searchSong() {
-            const searchTerm = document.getElementById('searchInput').value;
-            const resultDiv = document.getElementById('result');
-            
-            try {
-                const response = await fetch(`http://localhost:3000/api/song?q=${encodeURIComponent(searchTerm)}`);
-                const data = await response.json();
-
-                if (data.status) {
-                    document.getElementById('songTitle').textContent = data.data.name;
-                    document.getElementById('songArtist').textContent = data.data.artist;
-                    document.getElementById('songAlbum').textContent = data.data.albumname;
-                    document.getElementById('songDuration').textContent = data.data.duration;
-                    document.getElementById('songThumb').src = data.data.thumb;
-                    document.getElementById('downloadLink').href = data.data.download;
-                    resultDiv.style.display = 'block';
-                }
-            } catch (error) {
-                alert('Error fetching song data');
-                console.error(error);
+    static class SearchHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("POST".equals(exchange.getRequestMethod())) {
+                handlePostRequest(exchange);
+            } else {
+                handleGetRequest(exchange);
             }
         }
-    </script>
-</body>
-</html>
+
+        private void handleGetRequest(HttpExchange exchange) throws IOException {
+            String htmlForm = "<html>" +
+                    "<body>" +
+                    "<h1>Song Search</h1>" +
+                    "<form method='POST' action='/search'>" +
+                    "<input type='text' name='query' placeholder='Enter song name'/>" +
+                    "<input type='submit' value='Search'/>" +
+                    "</form>" +
+                    "</body>" +
+                    "</html>";
+
+            sendResponse(exchange, htmlForm);
+        }
+
+        private void handlePostRequest(HttpExchange exchange) throws IOException {
+            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            Map<String, String> params = parseFormData(requestBody);
+            String query = params.getOrDefault("query", "");
+
+            // Mock API response - Replace this with actual API call in real implementation
+            String mockApiResponse = "{"
+                    + "\"status\": true,"
+                    + "\"owner\": \"@dark-shan-yt1\","
+                    + "\"data\": {"
+                    + "\"name\": \"Helena\","
+                    + "\"albumname\": \"May Death Never Stop You (Deluxe Version)\","
+                    + "\"artist\": \"My Chemical Romance\","
+                    + "\"thumb\": \"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/27/86/b2/2786b235-e506-668a-76db-1e10ffe651a5/093624938330.jpg/600x600bb.webp\","
+                    + "\"duration\": \"3m 25s\","
+                    + "\"download\": \"https://dark-shan-yt.koyeb.app/token-fe8afe3a7c4a5d55e9e62752bbfe02cd074a4fc177faee3ba9bec600278cbc2d-darkshanyt\""
+                    + "}"
+                    + "}";
+
+            // Parse the mock response
+            Map<String, String> songData = parseJsonResponse(mockApiResponse);
+
+            // Build result HTML
+            String resultHtml = "<html><body>";
+            if (!songData.isEmpty()) {
+                resultHtml += "<h2>Search Results:</h2>" +
+                        "<p>Name: " + songData.get("name") + "</p>" +
+                        "<p>Artist: " + songData.get("artist") + "</p>" +
+                        "<p>Album: " + songData.get("albumname") + "</p>" +
+                        "<p>Duration: " + songData.get("duration") + "</p>" +
+                        "<a href='" + songData.get("download") + "' download>" +
+                        "<button>Download Song</button>" +
+                        "</a>";
+            } else {
+                resultHtml += "<p>No results found for: " + query + "</p>";
+            }
+            resultHtml += "</body></html>";
+
+            sendResponse(exchange, resultHtml);
+        }
+
+        private Map<String, String> parseFormData(String formData) {
+            Map<String, String> params = new HashMap<>();
+            String[] pairs = formData.split("&");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                if (keyValue.length == 2) {
+                    params.put(keyValue[0], keyValue[1]);
+                }
+            }
+            return params;
+        }
+
+        private Map<String, String> parseJsonResponse(String json) {
+            Map<String, String> data = new HashMap<>();
+            try {
+                Pattern pattern = Pattern.compile("\"name\":\\s*\"([^\"]+)\"");
+                Matcher matcher = pattern.matcher(json);
+                if (matcher.find()) data.put("name", matcher.group(1));
+
+                pattern = Pattern.compile("\"artist\":\\s*\"([^\"]+)\"");
+                matcher = pattern.matcher(json);
+                if (matcher.find()) data.put("artist", matcher.group(1));
+
+                pattern = Pattern.compile("\"albumname\":\\s*\"([^\"]+)\"");
+                matcher = pattern.matcher(json);
+                if (matcher.find()) data.put("albumname", matcher.group(1));
+
+                pattern = Pattern.compile("\"duration\":\\s*\"([^\"]+)\"");
+                matcher = pattern.matcher(json);
+                if (matcher.find()) data.put("duration", matcher.group(1));
+
+                pattern = Pattern.compile("\"download\":\\s*\"([^\"]+)\"");
+                matcher = pattern.matcher(json);
+                if (matcher.find()) data.put("download", matcher.group(1));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return data;
+        }
+
+        private void sendResponse(HttpExchange exchange, String response) throws IOException {
+            exchange.getResponseHeaders().add("Content-Type", "text/html");
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
+}
