@@ -1,25 +1,82 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Search</title>
+    <title>Song Downloader</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 8px; }
-        button { padding: 8px 16px; background: #1DB954; color: white; border: none; cursor: pointer; }
-        .results { margin-top: 20px; }
-        .result-item { padding: 10px; border-bottom: 1px solid #ddd; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #25D366;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .thumbnail {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .download-options {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .download-btn {
+            background-color: #075E54;
+            padding: 8px 15px;
+        }
     </style>
 </head>
 <body>
-    <h1>Search Music</h1>
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Enter song or artist...">
-        <button onclick="search()">Search</button>
+    <div class="container">
+        <h1>Song Downloader 🎵</h1>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Enter song name or YouTube URL">
+            <button onclick="searchSong()">Search</button>
+        </div>
+        <div id="results"></div>
     </div>
-    <div class="results" id="results"></div>
 
     <script src="index.js"></script>
 </body>
