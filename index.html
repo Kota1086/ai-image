@@ -3,83 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song Search & Download</title>
+    <title>Music Search</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-
-        .search-container {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        #searchInput {
-            padding: 10px;
-            width: 300px;
-            margin-right: 10px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .song-card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-        }
-
-        .song-info {
-            margin-left: 20px;
-        }
-
-        .song-thumb {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-
-        .download-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #008CBA;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .download-btn:hover {
-            background-color: #007399;
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 8px; }
+        button { padding: 8px 16px; background: #1DB954; color: white; border: none; cursor: pointer; }
+        .results { margin-top: 20px; }
+        .result-item { padding: 10px; border-bottom: 1px solid #ddd; }
     </style>
 </head>
 <body>
-    <div class="search-container">
-        <h1>Song Search</h1>
-        <input type="text" id="searchInput" placeholder="Enter song name...">
-        <button onclick="searchSong()">Search</button>
+    <h1>Search Music</h1>
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Enter song or artist...">
+        <button onclick="search()">Search</button>
     </div>
-
-    <div id="results"></div>
+    <div class="results" id="results"></div>
 
     <script src="index.js"></script>
 </body>
