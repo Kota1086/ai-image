@@ -1,31 +1,74 @@
-async function search() {
-    const searchInput = document.getElementById('searchInput').value;
+// index.js
+const API_BASE_URL = 'https://your-backend-api.com'; // Replace with your actual API URL
+
+async function searchSong() {
+    const searchInput = document.getElementById('searchInput');
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = 'Loading...';
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        alert('Please enter a song name or YouTube URL!');
+        return;
+    }
 
     try {
-        const response = await fetch('https://spotifyuserapiserg-osipchukv1.p.rapidapi.com/checkFollowArtist', {
-            method: 'POST',
-            headers: {
-                'x-rapidapi-key': '11619ccb1bmsh0de30012429e6fbp1d860bjsn660d31dc232c',
-                'x-rapidapi-host': 'SpotifyUserAPIserg-osipchukV1.p.rapidapi.com',
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            // Add proper body parameters if required by the API
-            // body: new URLSearchParams({ artistId: '', userId: '' })
-        });
-
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+        const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
         const data = await response.json();
-        resultsDiv.innerHTML = JSON.stringify(data, null, 2);
-        
+
+        if (!data.results || data.results.length === 0) {
+            resultsDiv.innerHTML = '<p>No results found!</p>';
+            return;
+        }
+
+        resultsDiv.innerHTML = data.results.map((video, index) => `
+            <div class="result">
+                <h3>${video.title}</h3>
+                <img class="thumbnail" src="${video.image}" alt="Thumbnail">
+                <p>Duration: ${video.timestamp} | Views: ${video.views}</p>
+                <div class="download-options">
+                    <button class="download-btn" onclick="downloadSong('${video.videoId}', 'audio')">
+                        Audio 🎵
+                    </button>
+                    <button class="download-btn" onclick="downloadSong('${video.videoId}', 'document')">
+                        Document 📁
+                    </button>
+                </div>
+            </div>
+        `).join('');
     } catch (error) {
-        resultsDiv.innerHTML = `Error: ${error.message}`;
+        console.error(error);
+        resultsDiv.innerHTML = '<p>Error fetching results!</p>';
     }
 }
 
-// Note: This will currently return authorization-related errors because:
-// 1. The endpoint is for checking artist follows, not searching songs
-// 2. Required parameters are missing
-// 3. Client-side API key exposure is insecure
+async function downloadSong(videoId, type) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/download`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                videoId,
+                type
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.downloadUrl) {
+            // Trigger download
+            const link = document.createElement('a');
+            link.href = data.downloadUrl;
+            link.download = true;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert('Download failed!');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Download error!');
+    }
+}
