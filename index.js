@@ -1,37 +1,31 @@
-async function searchSong() {
+async function search() {
     const searchInput = document.getElementById('searchInput').value;
     const resultsDiv = document.getElementById('results');
-    
-    if (!searchInput) {
-        alert('Please enter a song name');
-        return;
-    }
+    resultsDiv.innerHTML = 'Loading...';
 
     try {
-        // Replace this URL with your actual API endpoint
-        const response = await fetch(`https://your-api-endpoint.com/search?q=${encodeURIComponent(searchInput)}`);
+        const response = await fetch('https://spotifyuserapiserg-osipchukv1.p.rapidapi.com/checkFollowArtist', {
+            method: 'POST',
+            headers: {
+                'x-rapidapi-key': '11619ccb1bmsh0de30012429e6fbp1d860bjsn660d31dc232c',
+                'x-rapidapi-host': 'SpotifyUserAPIserg-osipchukV1.p.rapidapi.com',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            // Add proper body parameters if required by the API
+            // body: new URLSearchParams({ artistId: '', userId: '' })
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
         const data = await response.json();
-
-        if (!data.status) {
-            resultsDiv.innerHTML = '<p>No results found</p>';
-            return;
-        }
-
-        const song = data.data;
-        resultsDiv.innerHTML = `
-            <div class="song-card">
-                <img src="${song.thumb}" class="song-thumb" alt="${song.name}">
-                <div class="song-info">
-                    <h2>${song.name}</h2>
-                    <p><strong>Artist:</strong> ${song.artist}</p>
-                    <p><strong>Album:</strong> ${song.albumname}</p>
-                    <p><strong>Duration:</strong> ${song.duration}</p>
-                    <a href="${song.download}" class="download-btn" download>Download Song</a>
-                </div>
-            </div>
-        `;
+        resultsDiv.innerHTML = JSON.stringify(data, null, 2);
+        
     } catch (error) {
-        console.error('Error:', error);
-        resultsDiv.innerHTML = '<p>Error fetching results. Please try again later.</p>';
+        resultsDiv.innerHTML = `Error: ${error.message}`;
     }
 }
+
+// Note: This will currently return authorization-related errors because:
+// 1. The endpoint is for checking artist follows, not searching songs
+// 2. Required parameters are missing
+// 3. Client-side API key exposure is insecure
