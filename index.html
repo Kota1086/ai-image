@@ -22,6 +22,8 @@
             padding: 10px;
             width: 300px;
             margin-right: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
         }
 
         button {
@@ -29,7 +31,13 @@
             background-color: #4CAF50;
             color: white;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
         }
 
         .result-card {
@@ -43,6 +51,18 @@
         .thumbnail {
             max-width: 200px;
             border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        audio {
+            width: 100%;
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -55,6 +75,75 @@
 
     <div id="results"></div>
 
-    <script src="index.js"></script>
+    <script>
+        // Mock database of songs
+        const songsDatabase = [
+            {
+                title: "Lelena - Nilan Hettiarachchi",
+                link: "https://dark-shan-yt.koyeb.app/token-acfa2e857b1f97c010a220d22552a57ed74c88ef1d3aa477b3252275d3f55d3d-darkshanyt",
+                thumbnail: "https://i1.sndcdn.com/artworks-9fnywhk3sqPW-0-large.jpg",
+                duration: "3:45"
+            },
+            {
+                title: "Sunset Dreams",
+                link: "#",
+                thumbnail: "https://via.placeholder.com/200",
+                duration: "4:20"
+            },
+            {
+                title: "Mountain High",
+                link: "#",
+                thumbnail: "https://via.placeholder.com/200",
+                duration: "3:15"
+            }
+        ];
+
+        async function searchSong() {
+            const searchInput = document.getElementById('searchInput');
+            const resultsDiv = document.getElementById('results');
+            const query = searchInput.value.trim().toLowerCase();
+
+            if (!query) {
+                resultsDiv.innerHTML = '<p style="color: red">Please enter a song name</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading">Searching songs...</div>';
+
+            // Simulate API delay
+            setTimeout(() => {
+                const filteredSongs = songsDatabase.filter(song => 
+                    song.title.toLowerCase().includes(query)
+                );
+
+                if (filteredSongs.length === 0) {
+                    resultsDiv.innerHTML = '<p style="color: #666">No songs found. Try another search.</p>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = filteredSongs.map(song => `
+                    <div class="result-card">
+                        <h2>${song.title}</h2>
+                        <p>Duration: ${song.duration}</p>
+                        <img src="${song.thumbnail}" class="thumbnail" alt="Album art">
+                        <audio controls>
+                            <source src="${song.link}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <div style="margin-top: 15px;">
+                            <a href="${song.link}" download="${song.title.replace(/ /g, '_')}.mp3">
+                                <button>Download MP3</button>
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+            }, 1000);
+        }
+
+        // Add Enter key support
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchSong();
+        });
+    </script>
 </body>
 </html>
