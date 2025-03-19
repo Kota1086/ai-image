@@ -3,164 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Downloader</title>
+    <title>Song Search & Download</title>
     <style>
-        /* (Keep the same CSS styles as before) */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
         body {
-            background: #1a1a1a;
-            color: white;
-            min-height: 100vh;
-        }
-
-        .container {
+            font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f0f0f0;
         }
 
-        header {
+        .search-container {
             text-align: center;
             margin-bottom: 30px;
         }
 
-        h1 {
-            color: #ff4757;
-            margin-bottom: 10px;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            background: #333;
-            color: white;
+        #searchInput {
+            padding: 10px;
+            width: 300px;
+            margin-right: 10px;
         }
 
         button {
-            padding: 12px 25px;
-            background: #ff4757;
-            border: none;
-            border-radius: 5px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
             color: white;
+            border: none;
             cursor: pointer;
-            transition: background 0.3s;
         }
 
         button:hover {
-            background: #ff6b81;
+            background-color: #45a049;
         }
 
-        .result-card {
-            background: #333;
-            border-radius: 10px;
+        .song-card {
+            background-color: white;
             padding: 20px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .song-info {
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
             display: flex;
-            gap: 20px;
             align-items: center;
         }
 
-        .album-art {
-            width: 100px;
-            height: 100px;
-            border-radius: 5px;
+        .song-info {
+            margin-left: 20px;
+        }
+
+        .song-thumb {
+            width: 150px;
+            height: 150px;
             object-fit: cover;
-        }
-
-        .song-details {
-            flex: 1;
-        }
-
-        .song-title {
-            font-size: 1.2em;
-            margin-bottom: 5px;
-            color: #ff4757;
+            border-radius: 5px;
         }
 
         .download-btn {
             display: inline-block;
-            margin-top: 15px;
-            text-decoration: none;
-            background: #2ed573;
             padding: 10px 20px;
-            border-radius: 5px;
+            background-color: #008CBA;
             color: white;
-            transition: background 0.3s;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
         }
 
         .download-btn:hover {
-            background: #26af5f;
+            background-color: #007399;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Music Downloader</h1>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Enter song name...">
-                <button onclick="searchSong()">Search</button>
-            </div>
-        </header>
-
-        <div id="results">
-            <!-- Results will be dynamically inserted here -->
-        </div>
+    <div class="search-container">
+        <h1>Song Search</h1>
+        <input type="text" id="searchInput" placeholder="Enter song name...">
+        <button onclick="searchSong()">Search</button>
     </div>
 
-    <script>
-        async function searchSong() {
-            const searchInput = document.getElementById('searchInput').value;
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.innerHTML = ''; // Clear previous results
+    <div id="results"></div>
 
-            try {
-                const response = await fetch(`https://dark-shan-yt.koyeb.app/api/search?q=${encodeURIComponent(searchInput)}`);
-                const data = await response.json();
-
-                if (data.status && data.data) {
-                    const song = data.data;
-                    const resultCard = document.createElement('div');
-                    resultCard.className = 'result-card';
-                    resultCard.innerHTML = `
-                        <div class="song-info">
-                            <img class="album-art" src="${song.thumb}" alt="Album Art">
-                            <div class="song-details">
-                                <h2 class="song-title">${song.name}</h2>
-                                <p class="artist">Artist: ${song.artist}</p>
-                                <p class="album">Album: ${song.albumname}</p>
-                                <p class="duration">Duration: ${song.duration}</p>
-                                <a href="${song.download}" class="download-btn" target="_blank">Download</a>
-                            </div>
-                        </div>
-                    `;
-                    resultsContainer.appendChild(resultCard);
-                } else {
-                    resultsContainer.innerHTML = '<p class="no-results">No results found</p>';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                resultsContainer.innerHTML = '<p class="error">Error fetching results. Please try again.</p>';
-            }
-        }
-    </script>
+    <script src="index.js"></script>
 </body>
 </html>
