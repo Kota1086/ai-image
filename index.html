@@ -3,196 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinduwa.lk Music Search</title>
+    <title>YouTube MP3 Downloader</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background: #f0f2f5;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            background: #1DB954;
-            padding: 20px;
-            color: white;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .search-box {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto 30px;
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 25px;
-            outline: none;
-        }
-
-        #searchInput:focus {
-            border-color: #1DB954;
-        }
-
-        .results-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .song-card {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .song-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-
-        .song-info {
-            padding: 15px 0;
-        }
-
-        .song-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #1a1a1a;
-        }
-
-        .song-artist {
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .error {
-            color: #ff4444;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1DB954;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        body { font-family: Arial, sans-serif; text-align: center; background: #282c34; color: white; }
+        input, button { margin: 10px; padding: 10px; }
+        .results { display: flex; flex-wrap: wrap; justify-content: center; }
+        .video { margin: 10px; padding: 10px; background: #444; border-radius: 8px; }
+        .video img { width: 150px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Sinduwa.lk Music Search</h1>
-    </header>
-
-    <div class="container">
-        <div class="search-box">
-            <input 
-                type="text" 
-                id="searchInput" 
-                placeholder="Search songs..." 
-                autocomplete="off"
-            >
-        </div>
-
-        <div id="resultsContainer" class="results-container"></div>
-        <div id="loader" class="loader" style="display: none;"></div>
-        <div id="errorMessage" class="error"></div>
-    </div>
+    <h1>🎵 YouTube MP3 Downloader</h1>
+    <input type="text" id="searchInput" placeholder="Enter song name..." />
+    <button onclick="searchSong()">Search</button>
+    <div class="results" id="results"></div>
 
     <script>
-        const API_BASE = 'https://sinduwa.lk/api/folder/search';
-        const resultsContainer = document.getElementById('resultsContainer');
-        const searchInput = document.getElementById('searchInput');
-        const loader = document.getElementById('loader');
-        const errorMessage = document.getElementById('errorMessage');
+        async function searchSong() {
+            const query = document.getElementById("searchInput").value;
+            if (!query) return alert("Please enter a song name!");
+            
+            document.getElementById("results").innerHTML = "Searching...";
+            const response = await fetch(`/search?query=${query}`);
+            const results = await response.json();
 
-        // Debounce function to limit API calls
-        let debounceTimer;
-        function debounce(callback, delay) {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(callback, delay);
-        }
-
-        async function searchSongs(query) {
-            try {
-                loader.style.display = 'block';
-                errorMessage.textContent = '';
-                resultsContainer.innerHTML = '';
-
-                // Replace with actual API call
-                const response = await fetch(`${API_BASE}?q=${encodeURIComponent(query)}`);
-                
-                if (!response.ok) throw new Error('API request failed');
-                
-                // Replace with actual response parsing
-                const data = await response.json();
-                
-                // Replace this with actual data handling
-                displayResults(data.results || []);
-                
-            } catch (error) {
-                errorMessage.textContent = 'Error fetching results. Please try again later.';
-                console.error('API Error:', error);
-            } finally {
-                loader.style.display = 'none';
-            }
-        }
-
-        function displayResults(results) {
-            if (results.length === 0) {
-                resultsContainer.innerHTML = '<div class="error">No results found</div>';
-                return;
-            }
-
-            resultsContainer.innerHTML = results.map(result => `
-                <div class="song-card">
-                    <img src="${result.image || 'placeholder.jpg'}" alt="${result.title}">
-                    <div class="song-info">
-                        <div class="song-title">${result.title || 'Unknown Title'}</div>
-                        <div class="song-artist">${result.artist || 'Unknown Artist'}</div>
-                    </div>
+            document.getElementById("results").innerHTML = results.map(video => `
+                <div class="video">
+                    <img src="${video.thumbnail}" alt="${video.title}" />
+                    <p>${video.title}</p>
+                    <button onclick="downloadMP3('${video.videoId}')">Download MP3</button>
                 </div>
-            `).join('');
+            `).join("");
         }
 
-        // Event listeners
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
-            if (query.length > 2) {
-                debounce(() => searchSongs(query), 500);
+        async function downloadMP3(videoId) {
+            const response = await fetch(`/download?videoId=${videoId}`);
+            const data = await response.json();
+            if (data.success) {
+                window.open(data.downloadUrl, "_blank");
+            } else {
+                alert("Failed to download MP3");
             }
-        });
-
-        // Initial load (optional)
-        // searchSongs('latest');
+        }
     </script>
 </body>
 </html>
