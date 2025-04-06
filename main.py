@@ -1,4 +1,7 @@
-# main.py (Python Backend)
+# main.py
+import asyncio
+import websockets
+import json
 import numpy as np
 import pandas as pd
 from tensorflow.keras.models import Sequential
@@ -9,57 +12,81 @@ from ta.volatility import BollingerBands
 class TradingBot:
     def __init__(self):
         self.model = self.build_model()
-        
+        self.last_data = pd.DataFrame()
+
     def build_model(self):
         model = Sequential([
-            LSTM(50, return_sequences=True, input_shape=(60, 5)),
+            LSTM(50, return_sequences=True, input_shape=(60, 6)),
             LSTM(50),
-            Dense(3, activation='softmax')  # Buy, Sell, Hold
+            Dense(3, activation='softmax')
         ])
         model.compile(optimizer='adam', loss='categorical_crossentropy')
         return model
-    
+
     def preprocess_data(self, data):
-        # Add technical indicators
         rsi = RSIIndicator(data['close']).rsi()
         bb = BollingerBands(data['close'])
         features = pd.DataFrame({
-            'rsi': rsi,
-            'bb_upper': bb.bollinger_hband(),
-            'bb_lower': bb.bollinger_lband(),
+            'open': data['open'],
+            'high': data['high'],
+            'low': data['low'],
             'close': data['close'],
-            'volume': data['volume']
+            'rsi': rsi,
+            'bb_band': bb.bollinger_hband() - bb.bollinger_lband()
         })
-        return features.fillna(0).values.reshape(-1, 60, 5)
-    
-    def detect_pattern(self, data):
-        # Channel and candlestick pattern detection
+        return features.fillna(0).values.reshape(-1, 60, 6)
+
+    def detect_patterns(self, data):
         patterns = []
-        for i in range(2, len(data)):
-            # Detect channel patterns
-            if self.is_channel(data[i-2:i+1]):
+        closes = data['close'].values
+        if len(closes) > 3:
+            if abs(closes[-3] - closes[-1]) < 0.0001:
                 patterns.append('channel')
-                
-            # Detect candlestick patterns
-            if self.is_doji(data[i]):
+            body = abs(data['open'].iloc[-1] - data['close'].iloc[-1])
+            range_ = data['high'].iloc[-1] - data['low'].iloc[-1]
+            if body/range_ < 0.1:
                 patterns.append('doji')
         return patterns
-    
-    def generate_signal(self, data):
-        processed = self.preprocess_data(data)
-        prediction = self.model.predict(processed)
-        patterns = self.detect_pattern(data)
-        
-        # Combine AI prediction with pattern analysis
-        if 'channel' in patterns and prediction[0] > 0.8:
-            return 'BUY'
-        elif 'doji' in patterns and prediction[1] > 0.8:
-            return 'SELL'
-        else:
-            return 'HOLD'
+
+    async def generate_signals(self):
+        while True:
+            # Replace with real market data feed
+            mock_data = pd.DataFrame({
+                'open': np.random.normal(1.12, 0.01, 60),
+                'high': np.random.normal(1.125, 0.01, 60),
+                'low': np.random.normal(1.115, 0.01, 60),
+                'close': np.random.normal(1.12, 0.01, 60)
+            })
+            
+            processed = self.preprocess_data(mock_data)
+            prediction = self.model.predict(processed)
+            patterns = self.detect_patterns(mock_data)
+            
+            signal = 'HOLD'
+            if 'channel' in patterns and prediction[0][0] > 0.7:
+                signal = 'BUY'
+            elif 'doji' in patterns and prediction[0][1] > 0.7:
+                signal = 'SELL'
+            
+            chart_data = [{
+                'x': list(range(60)),
+                'open': mock_data['open'],
+                'high': mock_data['high'],
+                'low': mock_data['low'],
+                'close': mock_data['close'],
+                'type': 'candlestick'
+            }]
+            
+            await websocket.send(json.dumps({
+                'chart': chart_data,
+                'signal': signal
+            }))
+            await asyncio.sleep(60)
+
+async def main():
+    bot = TradingBot()
+    async with websockets.serve(bot.generate_signals, "localhost", 8000):
+        await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
-    bot = TradingBot()
-    # Load historical data for training
-    # Connect to real-time data feed
-    # Implement WebSocket communication
+    asyncio.run(main())
