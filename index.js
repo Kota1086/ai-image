@@ -1,45 +1,65 @@
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
+# main.py (Python Backend)
+import numpy as np
+import pandas as pd
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from ta.momentum import RSIIndicator
+from ta.volatility import BollingerBands
 
-const app = express();
-const PORT = 3000;
+class TradingBot:
+    def __init__(self):
+        self.model = self.build_model()
+        
+    def build_model(self):
+        model = Sequential([
+            LSTM(50, return_sequences=True, input_shape=(60, 5)),
+            LSTM(50),
+            Dense(3, activation='softmax')  # Buy, Sell, Hold
+        ])
+        model.compile(optimizer='adam', loss='categorical_crossentropy')
+        return model
+    
+    def preprocess_data(self, data):
+        # Add technical indicators
+        rsi = RSIIndicator(data['close']).rsi()
+        bb = BollingerBands(data['close'])
+        features = pd.DataFrame({
+            'rsi': rsi,
+            'bb_upper': bb.bollinger_hband(),
+            'bb_lower': bb.bollinger_lband(),
+            'close': data['close'],
+            'volume': data['volume']
+        })
+        return features.fillna(0).values.reshape(-1, 60, 5)
+    
+    def detect_pattern(self, data):
+        # Channel and candlestick pattern detection
+        patterns = []
+        for i in range(2, len(data)):
+            # Detect channel patterns
+            if self.is_channel(data[i-2:i+1]):
+                patterns.append('channel')
+                
+            # Detect candlestick patterns
+            if self.is_doji(data[i]):
+                patterns.append('doji')
+        return patterns
+    
+    def generate_signal(self, data):
+        processed = self.preprocess_data(data)
+        prediction = self.model.predict(processed)
+        patterns = self.detect_pattern(data)
+        
+        # Combine AI prediction with pattern analysis
+        if 'channel' in patterns and prediction[0] > 0.8:
+            return 'BUY'
+        elif 'doji' in patterns and prediction[1] > 0.8:
+            return 'SELL'
+        else:
+            return 'HOLD'
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static("public")); // Serve frontend files
-
-const API_URL = "https://p.oceansaver.in/ajax/download.php?format=mp3&url=";
-
-app.get("/search", async (req, res) => {
-    const { query } = req.query;
-    if (!query) return res.status(400).json({ error: "Query is required" });
-
-    try {
-        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&key=YOUR_YOUTUBE_API_KEY`;
-        const response = await axios.get(searchUrl);
-        const results = response.data.items.map(item => ({
-            title: item.snippet.title,
-            videoId: item.id.videoId,
-            thumbnail: item.snippet.thumbnails.high.url
-        }));
-
-        res.json(results);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch search results" });
-    }
-});
-
-app.get("/download", async (req, res) => {
-    const { videoId } = req.query;
-    if (!videoId) return res.status(400).json({ error: "Video ID is required" });
-
-    try {
-        const downloadUrl = `${API_URL}https://www.youtube.com/watch?v=${videoId}`;
-        res.json({ success: true, downloadUrl });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to generate download link" });
-    }
-});
-
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+if __name__ == "__main__":
+    bot = TradingBot()
+    # Load historical data for training
+    # Connect to real-time data feed
+    # Implement WebSocket communication
