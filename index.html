@@ -1,38 +1,63 @@
-<!-- dashboard.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Trading Bot</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Signal Bot</title>
+    <style>
+        /* Your existing styles */
+    </style>
 </head>
 <body>
-    <div id="chart" style="width:100%;height:600px;"></div>
-    <div id="signals" style="padding:20px;font-family:monospace;">
-        <h2>Signal Status: <span id="signal-status">-</span></h2>
-        <p>Risk Check: <span id="risk-status">-</span></p>
-        <p>Last Update: <span id="timestamp">-</span></p>
+    <div class="container">
+        <h1>Auto Trading Signal Bot</h1>
+        <select id="pair-select">
+            <option value="BTC">₿ Bitcoin</option>
+            <option value="ETH">Ξ Ethereum</option>
+            <option value="EUR/USD">🇪🇺🇺🇸 EUR/USD</option>
+            <!-- Add other pairs as needed -->
+        </select>
+        
+        <button id="get-signal">Generate Signal</button>
+        <div id="signal-result"></div>
+        <div class="countdown" id="countdown"></div>
     </div>
+
     <script>
-        const ws = new WebSocket('ws://localhost:8000');
-        ws.onmessage = function(event) {
-            const data = JSON.parse(event.data);
+        async function generateSignal() {
+            const pairs = document.getElementById('pair-select').value;
+            const result = document.getElementById('signal-result');
+            const response = await fetch(`/api/signal/${pairs}`);
+            const data = await response.json();
+
+            result.innerHTML = `${pairs}: ${data.signal}`;
+            result.style.color = data.signal.includes('BUY') ? '#00ff00' : '#ff0000';
             
-            // Update chart
-            Plotly.newPlot('chart', data.chart, {
-                title: 'Live Currency Pair Analysis',
-                showlegend: false
-            });
+            startCountdown();
+        }
+
+        function startCountdown() {
+            let timeLeft = 60;
+            const countdownElement = document.getElementById('countdown');
+            const button = document.getElementById('get-signal');
             
-            // Update status indicators
-            document.getElementById('signal-status').textContent = data.signal;
-            document.getElementById('risk-status').textContent = data.risk_status;
-            document.getElementById('timestamp').textContent = new Date().toLocaleString();
-            
-            // Color coding
-            document.getElementById('signal-status').style.color = 
-                data.signal === 'BUY' ? 'green' : 
-                data.signal === 'SELL' ? 'red' : 'gray';
-        };
+            button.disabled = true;
+            const countdown = setInterval(() => {
+                timeLeft--;
+                countdownElement.innerHTML = `Next signal in: ${timeLeft}s`;
+                
+                if(timeLeft <= 0) {
+                    clearInterval(countdown);
+                    countdownElement.innerHTML = '';
+                    button.disabled = false;
+                }
+            }, 1000);
+        }
+
+        document.getElementById('get-signal').addEventListener('click', generateSignal);
+        
+        // Initial signal generation
+        generateSignal();
     </script>
 </body>
 </html>
