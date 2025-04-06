@@ -1,50 +1,13 @@
+<!-- dashboard.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube MP3 Downloader</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #282c34; color: white; }
-        input, button { margin: 10px; padding: 10px; }
-        .results { display: flex; flex-wrap: wrap; justify-content: center; }
-        .video { margin: 10px; padding: 10px; background: #444; border-radius: 8px; }
-        .video img { width: 150px; border-radius: 5px; }
-    </style>
+    <title>Trading Bot Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-    <h1>🎵 YouTube MP3 Downloader</h1>
-    <input type="text" id="searchInput" placeholder="Enter song name..." />
-    <button onclick="searchSong()">Search</button>
-    <div class="results" id="results"></div>
-
-    <script>
-        async function searchSong() {
-            const query = document.getElementById("searchInput").value;
-            if (!query) return alert("Please enter a song name!");
-            
-            document.getElementById("results").innerHTML = "Searching...";
-            const response = await fetch(`/search?query=${query}`);
-            const results = await response.json();
-
-            document.getElementById("results").innerHTML = results.map(video => `
-                <div class="video">
-                    <img src="${video.thumbnail}" alt="${video.title}" />
-                    <p>${video.title}</p>
-                    <button onclick="downloadMP3('${video.videoId}')">Download MP3</button>
-                </div>
-            `).join("");
-        }
-
-        async function downloadMP3(videoId) {
-            const response = await fetch(`/download?videoId=${videoId}`);
-            const data = await response.json();
-            if (data.success) {
-                window.open(data.downloadUrl, "_blank");
-            } else {
-                alert("Failed to download MP3");
-            }
-        }
-    </script>
+    <div id="chart"></div>
+    <div id="signals"></div>
+    <script src="dashboard.js"></script>
 </body>
 </html>
