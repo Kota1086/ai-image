@@ -1,4 +1,4 @@
-# main.py
+# main.py (Combined Backend)
 import asyncio
 import websockets
 import json
@@ -8,6 +8,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from ta.momentum import RSIIndicator
 from ta.volatility import BollingerBands
+import subprocess  # For Java integration
 
 class TradingBot:
     def __init__(self):
@@ -48,9 +49,9 @@ class TradingBot:
                 patterns.append('doji')
         return patterns
 
-    async def generate_signals(self):
+    async def handler(self, websocket):
         while True:
-            # Replace with real market data feed
+            # Generate mock data (replace with real feed)
             mock_data = pd.DataFrame({
                 'open': np.random.normal(1.12, 0.01, 60),
                 'high': np.random.normal(1.125, 0.01, 60),
@@ -67,26 +68,35 @@ class TradingBot:
                 signal = 'BUY'
             elif 'doji' in patterns and prediction[0][1] > 0.7:
                 signal = 'SELL'
+
+            # Java Risk Check
+            risk_result = subprocess.check_output(
+                ['java', 'RiskManager', signal],
+                text=True
+            ).strip()
             
-            chart_data = [{
-                'x': list(range(60)),
-                'open': mock_data['open'],
-                'high': mock_data['high'],
-                'low': mock_data['low'],
-                'close': mock_data['close'],
-                'type': 'candlestick'
-            }]
+            if "APPROVED" in risk_result:
+                chart_data = [{
+                    'x': list(range(60)),
+                    'open': mock_data['open'].tolist(),
+                    'high': mock_data['high'].tolist(),
+                    'low': mock_data['low'].tolist(),
+                    'close': mock_data['close'].tolist(),
+                    'type': 'candlestick'
+                }]
+                
+                await websocket.send(json.dumps({
+                    'chart': chart_data,
+                    'signal': signal,
+                    'risk_status': risk_result
+                }))
             
-            await websocket.send(json.dumps({
-                'chart': chart_data,
-                'signal': signal
-            }))
             await asyncio.sleep(60)
 
 async def main():
     bot = TradingBot()
-    async with websockets.serve(bot.generate_signals, "localhost", 8000):
-        await asyncio.Future()  # Run forever
+    async with websockets.serve(bot.handler, "localhost", 8000):
+        await asyncio.Future()
 
 if __name__ == "__main__":
     asyncio.run(main())
