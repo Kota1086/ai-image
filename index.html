@@ -7,14 +7,31 @@
 </head>
 <body>
     <div id="chart" style="width:100%;height:600px;"></div>
-    <div id="signals" style="color:white; padding:20px;"></div>
+    <div id="signals" style="padding:20px;font-family:monospace;">
+        <h2>Signal Status: <span id="signal-status">-</span></h2>
+        <p>Risk Check: <span id="risk-status">-</span></p>
+        <p>Last Update: <span id="timestamp">-</span></p>
+    </div>
     <script>
-        const ws = new WebSocket('ws://localhost:8000/ws');
+        const ws = new WebSocket('ws://localhost:8000');
         ws.onmessage = function(event) {
             const data = JSON.parse(event.data);
-            Plotly.newPlot('chart', data.chart);
-            document.getElementById('signals').innerHTML = 
-                `Last Signal: ${data.signal}<br>Timestamp: ${new Date().toLocaleString()}`;
+            
+            // Update chart
+            Plotly.newPlot('chart', data.chart, {
+                title: 'Live Currency Pair Analysis',
+                showlegend: false
+            });
+            
+            // Update status indicators
+            document.getElementById('signal-status').textContent = data.signal;
+            document.getElementById('risk-status').textContent = data.risk_status;
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+            
+            // Color coding
+            document.getElementById('signal-status').style.color = 
+                data.signal === 'BUY' ? 'green' : 
+                data.signal === 'SELL' ? 'red' : 'gray';
         };
     </script>
 </body>
