@@ -3,169 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Photo Editor</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Web Camera LMC 8.4</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #f0f2f5;
-            margin: 0;
-            min-height: 100vh;
-        }
-
-        .camera-container {
-            position: relative;
-            width: 100%;
             max-width: 800px;
-            margin: 20px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
         }
-
-        #cameraIcon {
-            font-size: 80px;
-            color: #4CAF50;
-            cursor: pointer;
-            margin: 40px 0;
-            transition: transform 0.3s;
-        }
-
-        #cameraIcon:hover {
-            transform: scale(1.1);
-        }
-
-        #videoPreview {
+        #cameraView {
             width: 100%;
-            height: 500px;
             background: #333;
-            display: none;
-            border-radius: 10px;
+            position: relative;
         }
-
-        #captureBtn {
-            display: none;
-            margin: 20px;
-            padding: 15px 30px;
-            background: #4CAF50;
+        #preview {
+            width: 100%;
+            display: block;
+        }
+        .shutter {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            margin: 0 10px;
+            background: #007bff;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 18px;
         }
-
-        #photoPreview {
-            display: none;
-            max-width: 100%;
-            margin: 20px;
-            border-radius: 10px;
+        button:hover {
+            background: #0056b3;
         }
-
-        .ai-controls {
-            display: none;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        #gallery {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
         }
-
-        .ai-control {
-            display: flex;
-            flex-direction: column;
-            width: 200px;
-        }
-
-        .ai-control input {
-            margin: 5px 0;
+        .thumbnail {
+            width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <h1>AI Photo Editor</h1>
-    <i class="fas fa-camera" id="cameraIcon"></i>
-    
-    <div class="camera-container">
-        <video id="videoPreview"></video>
-        <canvas id="canvas" style="display: none;"></canvas>
-        <button id="captureBtn">Capture Photo</button>
+    <div id="cameraView">
+        <video id="preview"></video>
+        <div class="shutter"></div>
     </div>
-
-    <img id="photoPreview" alt="Captured photo">
     
-    <div class="ai-controls">
-        <div class="ai-control">
-            <label>Brightness</label>
-            <input type="range" id="brightness" min="0" max="200" value="100">
-        </div>
-        <div class="ai-control">
-            <label>Contrast</label>
-            <input type="range" id="contrast" min="0" max="200" value="100">
-        </div>
-        <div class="ai-control">
-            <label>Saturation</label>
-            <input type="range" id="saturation" min="0" max="200" value="100">
-        </div>
-        <div class="ai-control">
-            <label>AI Enhance</label>
-            <button onclick="applyAIEnhance()">Apply</button>
-        </div>
+    <div class="controls">
+        <button id="captureBtn">Take Photo</button>
     </div>
+    
+    <div id="gallery"></div>
 
     <script>
-        const cameraIcon = document.getElementById('cameraIcon');
-        const videoPreview = document.getElementById('videoPreview');
-        const captureBtn = document.getElementById('captureBtn');
-        const photoPreview = document.getElementById('photoPreview');
-        const aiControls = document.querySelector('.ai-controls');
-        let stream;
-
-        // Access camera
-        cameraIcon.addEventListener('click', async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                videoPreview.srcObject = stream;
-                videoPreview.style.display = 'block';
-                cameraIcon.style.display = 'none';
-                captureBtn.style.display = 'block';
-                videoPreview.play();
-            } catch (err) {
-                alert('Error accessing camera: ' + err);
+        // Camera Configuration (LMC 8.4 style)
+        const cameraConfig = {
+            camera: {
+                name: "WebLMC 8.4",
+                model: "HTML5 Edition",
+                version: "1.0.0"
+            },
+            settings: {
+                resolution: { width: 1280, height: 720 },
+                format: 'image/jpeg',
+                quality: 0.92,
+                storage: {
+                    maxPhotos: 20,
+                    prefix: "PHOTO_",
+                    dateFormat: "YYYYMMDD-HHmmss"
+                },
+                effects: {
+                    shutterAnimation: true
+                }
             }
-        });
+        };
 
-        // Capture photo
-        captureBtn.addEventListener('click', () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = videoPreview.videoWidth;
-            canvas.height = videoPreview.videoHeight;
-            canvas.getContext('2d').drawImage(videoPreview, 0, 0);
-            
-            photoPreview.src = canvas.toDataURL('image/png');
-            photoPreview.style.display = 'block';
-            aiControls.style.display = 'flex';
-            videoPreview.style.display = 'none';
-            captureBtn.style.display = 'none';
-            
-            // Stop camera stream
-            stream.getTracks().forEach(track => track.stop());
-        });
+        class WebCamera {
+            constructor(config) {
+                this.config = config;
+                this.videoElement = document.getElementById('preview');
+                this.shutterElement = document.querySelector('.shutter');
+                this.galleryElement = document.getElementById('gallery');
+                this.initializeCamera();
+            }
 
-        // AI Enhance (simulated - you would integrate with actual AI API)
-        function applyAIEnhance() {
-            photoPreview.style.filter = `
-                brightness(${document.getElementById('brightness').value}%)
-                contrast(${document.getElementById('contrast').value}%)
-                saturate(${document.getElementById('saturation').value}%)
-            `;
+            async initializeCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: this.config.settings.resolution.width,
+                            height: this.config.settings.resolution.height
+                        }
+                    });
+                    this.videoElement.srcObject = stream;
+                    this.videoElement.play();
+                } catch (error) {
+                    alert('Error accessing camera: ' + error.message);
+                }
+            }
+
+            capturePhoto() {
+                // Create canvas element
+                const canvas = document.createElement('canvas');
+                canvas.width = this.videoElement.videoWidth;
+                canvas.height = this.videoElement.videoHeight;
+                
+                // Draw video frame to canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+
+                // Apply shutter effect
+                if (this.config.settings.effects.shutterAnimation) {
+                    this.shutterElement.style.opacity = '0.8';
+                    setTimeout(() => {
+                        this.shutterElement.style.opacity = '0';
+                    }, 100);
+                }
+
+                // Convert to data URL
+                const photoData = canvas.toDataURL(
+                    this.config.settings.format,
+                    this.config.settings.quality
+                );
+
+                // Save and display photo
+                this.savePhoto(photoData);
+            }
+
+            savePhoto(dataUrl) {
+                // Create unique filename
+                const now = new Date();
+                const filename = `${this.config.settings.storage.prefix}${
+                    now.toISOString()
+                        .replace(/[^0-9]/g, '')
+                        .slice(0, 14)
+                }.${this.config.settings.format.split('/')[1]}`;
+
+                // Create thumbnail
+                const img = new Image();
+                img.src = dataUrl;
+                img.className = 'thumbnail';
+                img.onclick = () => window.open(dataUrl, '_blank');
+                
+                // Add to gallery
+                this.galleryElement.insertBefore(img, this.galleryElement.firstChild);
+
+                // Manage storage
+                while (this.galleryElement.children.length > this.config.settings.storage.maxPhotos) {
+                    this.galleryElement.removeChild(this.galleryElement.lastChild);
+                }
+            }
         }
 
-        // Real-time filter controls
-        document.querySelectorAll('.ai-control input').forEach(input => {
-            input.addEventListener('input', applyAIEnhance);
+        // Initialize camera when page loads
+        window.addEventListener('load', () => {
+            const camera = new WebCamera(cameraConfig);
+            
+            // Capture button click handler
+            document.getElementById('captureBtn').addEventListener('click', () => {
+                camera.capturePhoto();
+            });
         });
     </script>
 </body>
