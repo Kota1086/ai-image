@@ -3,61 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Signal Bot</title>
+    <title>AI Photo Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Your existing styles */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f2f5;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px;
+        }
+
+        #cameraIcon {
+            font-size: 80px;
+            color: #4CAF50;
+            cursor: pointer;
+            margin: 40px 0;
+            transition: transform 0.3s;
+        }
+
+        #cameraIcon:hover {
+            transform: scale(1.1);
+        }
+
+        #videoPreview {
+            width: 100%;
+            height: 500px;
+            background: #333;
+            display: none;
+            border-radius: 10px;
+        }
+
+        #captureBtn {
+            display: none;
+            margin: 20px;
+            padding: 15px 30px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #photoPreview {
+            display: none;
+            max-width: 100%;
+            margin: 20px;
+            border-radius: 10px;
+        }
+
+        .ai-controls {
+            display: none;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .ai-control {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+        }
+
+        .ai-control input {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Auto Trading Signal Bot</h1>
-        <select id="pair-select">
-            <option value="BTC">₿ Bitcoin</option>
-            <option value="ETH">Ξ Ethereum</option>
-            <option value="EUR/USD">🇪🇺🇺🇸 EUR/USD</option>
-            <!-- Add other pairs as needed -->
-        </select>
-        
-        <button id="get-signal">Generate Signal</button>
-        <div id="signal-result"></div>
-        <div class="countdown" id="countdown"></div>
+    <h1>AI Photo Editor</h1>
+    <i class="fas fa-camera" id="cameraIcon"></i>
+    
+    <div class="camera-container">
+        <video id="videoPreview"></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+        <button id="captureBtn">Capture Photo</button>
+    </div>
+
+    <img id="photoPreview" alt="Captured photo">
+    
+    <div class="ai-controls">
+        <div class="ai-control">
+            <label>Brightness</label>
+            <input type="range" id="brightness" min="0" max="200" value="100">
+        </div>
+        <div class="ai-control">
+            <label>Contrast</label>
+            <input type="range" id="contrast" min="0" max="200" value="100">
+        </div>
+        <div class="ai-control">
+            <label>Saturation</label>
+            <input type="range" id="saturation" min="0" max="200" value="100">
+        </div>
+        <div class="ai-control">
+            <label>AI Enhance</label>
+            <button onclick="applyAIEnhance()">Apply</button>
+        </div>
     </div>
 
     <script>
-        async function generateSignal() {
-            const pairs = document.getElementById('pair-select').value;
-            const result = document.getElementById('signal-result');
-            const response = await fetch(`/api/signal/${pairs}`);
-            const data = await response.json();
+        const cameraIcon = document.getElementById('cameraIcon');
+        const videoPreview = document.getElementById('videoPreview');
+        const captureBtn = document.getElementById('captureBtn');
+        const photoPreview = document.getElementById('photoPreview');
+        const aiControls = document.querySelector('.ai-controls');
+        let stream;
 
-            result.innerHTML = `${pairs}: ${data.signal}`;
-            result.style.color = data.signal.includes('BUY') ? '#00ff00' : '#ff0000';
+        // Access camera
+        cameraIcon.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoPreview.srcObject = stream;
+                videoPreview.style.display = 'block';
+                cameraIcon.style.display = 'none';
+                captureBtn.style.display = 'block';
+                videoPreview.play();
+            } catch (err) {
+                alert('Error accessing camera: ' + err);
+            }
+        });
+
+        // Capture photo
+        captureBtn.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoPreview.videoWidth;
+            canvas.height = videoPreview.videoHeight;
+            canvas.getContext('2d').drawImage(videoPreview, 0, 0);
             
-            startCountdown();
+            photoPreview.src = canvas.toDataURL('image/png');
+            photoPreview.style.display = 'block';
+            aiControls.style.display = 'flex';
+            videoPreview.style.display = 'none';
+            captureBtn.style.display = 'none';
+            
+            // Stop camera stream
+            stream.getTracks().forEach(track => track.stop());
+        });
+
+        // AI Enhance (simulated - you would integrate with actual AI API)
+        function applyAIEnhance() {
+            photoPreview.style.filter = `
+                brightness(${document.getElementById('brightness').value}%)
+                contrast(${document.getElementById('contrast').value}%)
+                saturate(${document.getElementById('saturation').value}%)
+            `;
         }
 
-        function startCountdown() {
-            let timeLeft = 60;
-            const countdownElement = document.getElementById('countdown');
-            const button = document.getElementById('get-signal');
-            
-            button.disabled = true;
-            const countdown = setInterval(() => {
-                timeLeft--;
-                countdownElement.innerHTML = `Next signal in: ${timeLeft}s`;
-                
-                if(timeLeft <= 0) {
-                    clearInterval(countdown);
-                    countdownElement.innerHTML = '';
-                    button.disabled = false;
-                }
-            }, 1000);
-        }
-
-        document.getElementById('get-signal').addEventListener('click', generateSignal);
-        
-        // Initial signal generation
-        generateSignal();
+        // Real-time filter controls
+        document.querySelectorAll('.ai-control input').forEach(input => {
+            input.addEventListener('input', applyAIEnhance);
+        });
     </script>
 </body>
 </html>
