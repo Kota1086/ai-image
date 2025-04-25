@@ -1,138 +1,151 @@
-<!DOCTYPE html><html lang="en"><head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<title>BinomoCheat</title>
-	
-	<link rel="stylesheet" href="../lander/binomo-signals-land/en/assets/style.css">
-	
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-	<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,500;6..12,600;6..12,700;6..12,800;6..12,1000&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Signal Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #2d2d2d;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 400px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #00ccff;
+        }
+        select, button {
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            width: 80%;
+            cursor: pointer;
+        }
+        button {
+            background-color: #00ccff;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0099cc;
+        }
+        #signal {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        #timer {
+            font-size: 24px;
+            margin-top: 10px;
+            color: #ffcc00;
+        }
+        .warning {
+            font-size: 12px;
+            color: #ffcc00;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h2>Binary Signal Bot</h2>
+        <select id="symbol">
+            <option value="EURUSD">EUR/USD</option>
+            <option value="GBPUSD">GBP/USD</option>
+            <option value="USDJPY">USD/JPY</option>
+            <option value="AUDUSD">AUD/USD</option>
+            <option value="USDCHF">USD/CHF</option>
+        </select>
+        <button onclick="generateSignal()">Signal ලබා ගන්න</button>
+        <div id="signal">Signal: බලාපොරොත්තුවෙන්...</div>
+        <div id="timer"></div>
+        <div class="warning">
+            අවවාදය: මෙම signal වල විශ්වාසනීයත්වය ගණනය කර ඇති නමුත්, වෙළඳාමේ අවදානම් පවතී. ඔබේම විමසීම් සිදු කරන්න.
+        </div>
+    </div>
 
-<div class="app">
-	<div class="display">
-		<div class="logo">
-			<img src="../lander/binomo-signals-land/en/assets/logo.png" alt="Logo">
-		</div>
-		<div class="block currency">
-			<div class="tit">ASSET</div>
-			<div class="value"></div>
-			<div class="currency-container"></div>
-		</div>
-		<div class="block forecast">
-			<div class="tit">BUTTON</div>
-			<div class="value">
-				<div class="spinner"></div>
-			</div>
-		</div>
-		<div class="block set-time">
-			<div class="tit">TIME</div>
-<!--			<input type="tel" class="time_input">-->
-			<div class="time_val"></div>
-			<div class="set-time-items"></div>
-		</div>
-		<button class="btn action" data-init-status="wait"><span class="text">GET SIGNAL</span><div class="spinner"></div></button>
-		
-	</div>
+    <script>
+        let timerInterval;
+        const apiKey = 'MXY9KJG1JUSFUW27'; // ඔබේ Alpha Vantage API යතුර
 
-	<div class="modal">
-<!--		<div class="modal-close"><img src="./en/assets/close.png" alt="close"></div>-->
-		<div class="modal-tit">Enter a special code to use the application</div>
-		<div class="modal-input">
-			<input type="text">
-			<span class="errtxt">Incorrect data</span>
-		</div>
-		<button class="unlock">Unblock</button>
-	</div>
-</div>
+        async function generateSignal() {
+            clearInterval(timerInterval); // පවතින ටයිමර් එක නවත්වන්න
 
-<script src="../lander/binomo-signals-land/en/assets/script.js"></script>
+            const symbol = document.getElementById('symbol').value;
+            const url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=${symbol.slice(0,3)}&to_symbol=${symbol.slice(3)}&interval=1min&apikey=${apiKey}`;
 
-</body></html>                this.shutterElement = document.querySelector('.shutter');
-                this.galleryElement = document.getElementById('gallery');
-                this.initializeCamera();
-            }
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const timeSeries = data['Time Series FX (1min)'];
+                const candles = Object.values(timeSeries).slice(0, 6); // පසුගිය කැන්ඩල් 6ක් ලබා ගන්න
 
-            async initializeCamera() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: this.config.settings.resolution.width,
-                            height: this.config.settings.resolution.height
-                        }
-                    });
-                    this.videoElement.srcObject = stream;
-                    this.videoElement.play();
-                } catch (error) {
-                    alert('Error accessing camera: ' + error.message);
-                }
-            }
+                // අවසාන කැන්ඩල් එක
+                const lastCandle = candles[0];
+                const open = parseFloat(lastCandle['1. open']);
+                const close = parseFloat(lastCandle['4. close']);
 
-            capturePhoto() {
-                // Create canvas element
-                const canvas = document.createElement('canvas');
-                canvas.width = this.videoElement.videoWidth;
-                canvas.height = this.videoElement.videoHeight;
-                
-                // Draw video frame to canvas
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+                // SMA ගණනය කිරීම (පසුගිය කැන්ඩල් 5ක)
+                const sma = candles.slice(1, 6).reduce((sum, candle) => sum + parseFloat(candle['4. close']), 0) / 5;
 
-                // Apply shutter effect
-                if (this.config.settings.effects.shutterAnimation) {
-                    this.shutterElement.style.opacity = '0.8';
-                    setTimeout(() => {
-                        this.shutterElement.style.opacity = '0';
-                    }, 100);
+                // සිග්නල් තීරණය
+                let signal;
+                if (close > open && close > sma) {
+                    signal = 'UP';
+                } else if (close < open && close < sma) {
+                    signal = 'DOWN';
+                } else {
+                    signal = 'NEUTRAL';
                 }
 
-                // Convert to data URL
-                const photoData = canvas.toDataURL(
-                    this.config.settings.format,
-                    this.config.settings.quality
-                );
-
-                // Save and display photo
-                this.savePhoto(photoData);
-            }
-
-            savePhoto(dataUrl) {
-                // Create unique filename
-                const now = new Date();
-                const filename = `${this.config.settings.storage.prefix}${
-                    now.toISOString()
-                        .replace(/[^0-9]/g, '')
-                        .slice(0, 14)
-                }.${this.config.settings.format.split('/')[1]}`;
-
-                // Create thumbnail
-                const img = new Image();
-                img.src = dataUrl;
-                img.className = 'thumbnail';
-                img.onclick = () => window.open(dataUrl, '_blank');
-                
-                // Add to gallery
-                this.galleryElement.insertBefore(img, this.galleryElement.firstChild);
-
-                // Manage storage
-                while (this.galleryElement.children.length > this.config.settings.storage.maxPhotos) {
-                    this.galleryElement.removeChild(this.galleryElement.lastChild);
+                // විශ්වාසනීයත්වය ගණනය කිරීම (සරල උදාහරණයක්)
+                let successCount = 0;
+                for (let i = 1; i < 5; i++) {
+                    const prevOpen = parseFloat(candles[i]['1. open']);
+                    const prevClose = parseFloat(candles[i]['4. close']);
+                    const nextClose = parseFloat(candles[i - 1]['4. close']);
+                    if (prevClose > prevOpen && nextClose > prevClose) successCount++;
+                    if (prevClose < prevOpen && nextClose < prevClose) successCount++;
                 }
+                const confidence = Math.round((successCount / 4) * 100);
+
+                document.getElementById('signal').innerText = `Signal: ${signal} (විශ්වාසනීයත්වය: ${confidence}%)`;
+                startTimer(120); // මිනිත්තු 2ක ටයිමර් ආරම්භ කරන්න
+            } catch (error) {
+                console.error('දත්ත ලබා ගැනීමේ දෝෂය:', error);
+                document.getElementById('signal').innerText = 'Signal: දත්ත ලබා ගැනීමේ දෝෂයක්';
             }
         }
 
-        // Initialize camera when page loads
-        window.addEventListener('load', () => {
-            const camera = new WebCamera(cameraConfig);
-            
-            // Capture button click handler
-            document.getElementById('captureBtn').addEventListener('click', () => {
-                camera.capturePhoto();
-            });
-        });
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            const timerDiv = document.getElementById('timer');
+            timerDiv.innerText = `ඉතිරි වේලාව: ${timeLeft} තත්පර`;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDiv.innerText = `ඉතිරි වේලාව: ${timeLeft} තත්පර`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerDiv.innerText = '';
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
