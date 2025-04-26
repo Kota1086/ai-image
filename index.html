@@ -2,34 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Instant Buy/Sell Signal Bot</title>
+    <title>Instant Buy/Sell Signal Bot (No API)</title>
     <style>
         body {
             background-color: #000;
             color: #0f0;
             font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             text-align: center;
-            margin: 0;
+            margin-top: 80px;
         }
-        button, select {
-            padding: 10px 20px;
-            margin: 10px;
+        select, button {
             background-color: #0f0;
             color: #000;
             font-size: 18px;
-            font-weight: bold;
+            padding: 10px 20px;
+            margin: 10px;
             border: none;
             border-radius: 5px;
+            font-weight: bold;
             cursor: pointer;
         }
         #signal {
-            margin-top: 20px;
-            font-size: 28px;
+            margin-top: 30px;
+            font-size: 32px;
             font-weight: bold;
         }
     </style>
@@ -45,61 +40,27 @@
         <option value="5">5 Minutes</option>
     </select>
 
-    <button id="startButton">Get Signal</button>
+    <br><br>
+
+    <button onclick="generateSignal()">Get Signal</button>
 
     <div id="signal">Awaiting Signal...</div>
 
     <script>
-        let previousRate = null;
+        function generateSignal() {
+            const randomValue = Math.random(); // Random number between 0 and 1
 
-        async function fetchRate() {
-            try {
-                const response = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=EUR');
-                const data = await response.json();
-                return data.rates.EUR;
-            } catch (error) {
-                console.error('Error fetching rate:', error);
-                return null;
-            }
-        }
-
-        function generateSmartSignal(currentRate, previousRate) {
-            if (previousRate === null) {
-                return { signal: 'Analyzing Data...', confident: false };
-            }
-            const change = currentRate - previousRate;
-            const percentChange = (change / previousRate) * 100;
-
-            if (percentChange >= 0.0005) {
-                return { signal: 'BUY 📈', confident: true };
-            } else if (percentChange <= -0.0005) {
-                return { signal: 'SELL 📉', confident: true };
+            let signal = "";
+            if (randomValue < 0.45) {
+                signal = "BUY 📈";
+            } else if (randomValue < 0.90) {
+                signal = "SELL 📉";
             } else {
-                // Weak changes: still show forced decision
-                return { signal: change >= 0 ? 'BUY 📈 (weak)' : 'SELL 📉 (weak)', confident: false };
+                signal = "No Clear Signal ❓";
             }
+
+            document.getElementById("signal").innerHTML = `<span>${signal}</span>`;
         }
-
-        async function startBot() {
-            document.getElementById('signal').innerText = 'Fetching Signal...';
-            const currentRate = await fetchRate();
-
-            if (currentRate !== null) {
-                const signalData = generateSmartSignal(currentRate, previousRate);
-
-                document.getElementById('signal').innerHTML = `<span style="color: ${signalData.confident ? '#00ff00' : '#ffff00'};">Signal: ${signalData.signal}</span>`;
-
-                previousRate = currentRate;
-            } else {
-                document.getElementById('signal').innerText = 'Error fetching data!';
-            }
-        }
-
-        document.getElementById('startButton').addEventListener('click', async () => {
-            // Immediately fetch twice for instant comparison
-            previousRate = await fetchRate();
-            setTimeout(startBot, 1000); // wait 1 second and fetch again
-        });
     </script>
 
 </body>
