@@ -2,61 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Binary Trading Signal Bot</title>
+  <title>Currency Rates Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #output {
+      margin-top: 30px;
+      width: 90%;
+      max-width: 800px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
 </head>
-<body style="background-color: black; color: white; font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">  
-  <h1>Binary Trading Signal Bot</h1>
+<body>
 
-  <label for="currency">Select Currency Pair:</label><br> 
-  <select id="currency"> 
-    <option value="USD">USD</option> 
-    <option value="EUR">EUR</option> 
-    <option value="GBP">GBP</option> 
-    <option value="JPY">JPY</option> 
-  </select><br><br>
+  <h1>Currency Rates (USD)</h1>
 
-  <label for="timeframe">Select Timeframe:</label><br> 
-  <select id="timeframe"> 
-    <option value="1">1 Minute</option> 
-    <option value="3">3 Minutes</option> 
-    <option value="5">5 Minutes</option> 
-  </select><br><br>
+  <button onclick="fetchRates()">Get Rates</button>
 
-  <button onclick="getSignal()" style="padding: 10px 20px; font-size: 16px;">Get Signal</button>
-
-  <h2 id="signal" style="margin-top: 40px;"></h2>
+  <div id="output">
+    <p>Click the button to fetch data.</p>
+  </div>
 
   <script>
-    async function fetchExchangeRate(from) {
-      try {
-        const response = await fetch(`https://api.unirateapi.com/api/rates?api_key=3qnkZTTviZbpc1XECRocSnu3xDOmC7WhFY7vaAzuWjG61ygMWIvroLBPKB4MGszt&from=${from}`);
-        const data = await response.json();
-        return data.data;
-      } catch (error) {
-        console.error('Error fetching exchange rate:', error);
-        return null;
-      }
-    }
+    function fetchRates() {
+      const output = document.getElementById('output');
+      output.innerHTML = "<p>Loading...</p>";
 
-    async function getSignal() {
-      const fromCurrency = document.getElementById('currency').value;
-      const timeframe = parseInt(document.getElementById('timeframe').value);
-
-      document.getElementById('signal').innerText = 'Loading...'; // Signal load වෙනකන් text එක දාමු
-
-      // දැන් data request කරන්න
-      const rates = await fetchExchangeRate(fromCurrency);
-      if (!rates) {
-        document.getElementById('signal').innerText = 'Error fetching data.';
-        return;
-      }
-
-      // Random basic signal logic (mock AI strategy)
-      const random = Math.random();
-      let signal = random > 0.5 ? 'BUY' : 'SELL';
-
-      document.getElementById('signal').innerText = `Signal: ${signal} (${fromCurrency} - ${timeframe}m)`;
+      fetch("https://api.unirateapi.com/api/rates?api_key=3qnkZTTviZbpc1XECRocSnu3xDOmC7WhFY7vaAzuWjG61ygMWIvroLBPKB4MGszt&from=USD")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(data => {
+          output.innerHTML = "<h3>Results:</h3><pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        })
+        .catch(error => {
+          output.innerHTML = "<p style='color:red;'>Error: " + error.message + "</p>";
+        });
     }
   </script>
+
 </body>
 </html>
