@@ -1,27 +1,36 @@
 body {
-    font-family: Arial, sans-serif;
-    background: #0c192c;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #111;
+  color: #fff;
+  text-align: center;
 }
 
-.container {
-    text-align: center;
+form {
+  margin-bottom: 20px;
 }
 
-button {
-    padding: 15px 30px;
-    font-size: 18px;
-    margin-top: 20px;
-    cursor: pointer;
+input, button {
+  padding: 10px;
+  margin: 5px;
+  font-size: 1em;
 }
 
-#result {
-    margin-top: 20px;
-    font-size: 24px;
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+}
+
+.meme-card {
+  background: #222;
+  border-radius: 10px;
+  padding: 10px;
+  width: 200px;
+}
+
+.meme-card img {
+  width: 100%;
+  border-radius: 10px;
 }
