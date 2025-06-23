@@ -1,42 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Forex Signal Bot</title>
-  <style>
-    body {
-      background-color: #0d1117;
-      color: white;
-      text-align: center;
-      font-family: Arial, sans-serif;
-      margin-top: 100px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 20px;
-      margin-top: 20px;
-    }
-  </style>
+  <title>Meme Store</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Forex Signal Bot</h1>
-  <button onclick="getSignal()">Get Signal</button>
-  <h2 id="signal">Waiting for signal...</h2>
+  <h1>🔥 MEMEverse - Meme Store</h1>
 
-  <script>
-    async function getSignal() {
-      document.getElementById('signal').innerText = 'Fetching signal...';
+  <form id="uploadForm">
+    <input type="file" id="memeImage" accept="image/*" required />
+    <input type="text" id="memeTitle" placeholder="Enter Meme Title" required />
+    <button type="submit">Upload Meme</button>
+  </form>
 
-      try {
-        const response = await fetch('/api/signal');
-        const data = await response.json();
+  <p id="status"></p>
 
-        document.getElementById('signal').innerText = `Signal: ${data.signal} (EUR Rate: ${data.rate})`;
-      } catch (error) {
-        document.getElementById('signal').innerText = 'Error fetching signal.';
-        console.error('Error:', error);
-      }
-    }
-  </script>
+  <div id="gallery" class="gallery"></div>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
